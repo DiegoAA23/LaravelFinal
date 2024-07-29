@@ -151,6 +151,13 @@ class EstudianteController extends Controller
                     'role_id' => 2, // Estudiante
                 ]);
             }
+
+            if($userExists){
+                $this->role->create([
+                    'user_id' => $user->id,
+                    'role_id' => 2, // Estudiante
+                ]);
+            }
         } catch (\Exception $e) {
             dd($e->getMessage());
         }
@@ -214,7 +221,7 @@ class EstudianteController extends Controller
 
         try {
             $estudiante = $this->estudiante->findOrFail($id_estudiante);
-            $currentEmailDecrypted=$estudiante->correo_electronico;
+            $currentEmailDecrypted = Crypt::decryptString($estudiante->correo_electronico);
             $encryptedName = Crypt::encryptString($request->nombre);
             $encryptedApellido = Crypt::encryptString($request->apellido);
             $encryptedNacimiento = Crypt::encryptString($request->fecha_de_nacimiento);
@@ -239,6 +246,7 @@ class EstudianteController extends Controller
                     'role_id' => 2, // Estudiante
                 ]);
             }
+
             $users = User::all();
             foreach ($users as $user) {
                 try {
@@ -288,6 +296,8 @@ class EstudianteController extends Controller
                 $estudiante->update(['estado_id' => 2]);
                 $us = $this->userEstudiante($id_estudiante);
                 DB::statement('DELETE FROM role_user WHERE user_id = ? AND role_id = ?', [$us, 2]);
+                /////////////////////////////////////////////////////////////
+              
                 return redirect()->route('estudianteView')->with('success', 'Estudiante desactivado exitosamente.');
             } else {
                 return redirect()->route('estudianteView');

@@ -12,14 +12,14 @@ use Barryvdh\DomPDF\Facade\PDF;
 
 class EstudianteNotas extends Controller
 {
-    function index()
+    public function index()
     {
         $data = array(
             'list' => DB::table('clases_horarios')->get(),
         );
 
         $periodo = array(
-            'periodo' => $this->comprobarPeriodo(),
+            'periodos' => $this->comprobarPeriodo(), // Cambia el nombre de la clave a 'periodos'
         );
 
         $combinedData = array_merge($data, $periodo);
@@ -40,7 +40,6 @@ class EstudianteNotas extends Controller
 
         return $periodosUnicos;
     }
-
 
     private $idest;
     private $nombre;
@@ -65,7 +64,15 @@ class EstudianteNotas extends Controller
 
     public function notas($id)
     {
-        $item = DB::table('notas')->where('id_estudiante', $id)->get();
+        $periodoReciente = DB::table('notas')
+            ->where('id_estudiante', $id)
+            ->orderBy('periodo', 'desc')
+            ->value('periodo');
+
+        $item = DB::table('notas')
+            ->where('id_estudiante', $id)
+            ->where('periodo', $periodoReciente)
+            ->get();
 
         return view('estudcalificaciones', ['item' => $item]);
     }
@@ -75,7 +82,15 @@ class EstudianteNotas extends Controller
         $this->obtenerEstudiante();
         $id_estudiante = $this->idest;
 
-        $item = DB::table('notas')->where('id_estudiante', $id_estudiante)->get();
+        $periodoReciente = DB::table('notas')
+            ->where('id_estudiante', $id_estudiante)
+            ->orderBy('periodo', 'desc')
+            ->value('periodo');
+
+        $item = DB::table('notas')
+            ->where('id_estudiante', $id_estudiante)
+            ->where('periodo', $periodoReciente)
+            ->get();
 
         $pdf = PDF::loadView('calificacionesReporte', ['item' => $item])->setPaper('a4');
 
@@ -98,7 +113,7 @@ class EstudianteNotas extends Controller
 
         $item = DB::table('notas_periodo')->where('id_estudiante', $id_estudiante)->get();
 
-        $pdf = PDF::loadView('historialReporte', ['item' => $item, 'nombre_estudiante' => $nombre_estudiante, 'apellido_estudiante' => $apellido_estudiante, 'id_estudiante' => $id_estudiante])->setPaper('a3','landscape');
+        $pdf = PDF::loadView('historialReporte', ['item' => $item, 'nombre_estudiante' => $nombre_estudiante, 'apellido_estudiante' => $apellido_estudiante, 'id_estudiante' => $id_estudiante])->setPaper('a3', 'landscape');
 
         return $pdf->download('historial.pdf');
     }

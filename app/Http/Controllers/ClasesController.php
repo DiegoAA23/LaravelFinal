@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Crypt;
 use Barryvdh\DomPDF\Facade\PDF;
 use Carbon\Carbon;
 
+
 class ClasesController extends Controller
 {
     private $idest;
@@ -24,7 +25,7 @@ class ClasesController extends Controller
     }
     public function index()
     {
-       /* $clases = $this->clase::all();
+        /* $clases = $this->clase::all();
         foreach ($clases as $clase) {
             $clase->nombre_clase = Crypt::decryptString($clase->nombre_clase);
         }*/
@@ -35,19 +36,11 @@ class ClasesController extends Controller
             if ($profesor) {
                 if ($profesor->estado_id == 2) {
                     $clase->profesor_nombre = "Sin Asignar";
-                }else{
+                } else {
                     $clase->profesor_nombre = Crypt::decryptString($profesor->nombre) . ' ' . Crypt::decryptString($profesor->apellido);
                 }
             } else {
                 $clase->profesor_nombre = "Desconocido";
-            }
-        }
-        foreach ($clases as $clase) {
-            $profesor = $clase->id_profesor ? Profesore::find($clase->id_profesor) : null;
-            if ($profesor) {
-                $clase->profesor_nombre = Crypt::decryptString($profesor->nombre) . ' ' . Crypt::decryptString($profesor->apellido);
-            } else {
-                $clase->profesor_nombre = "Sin Asignar";
             }
         }
 
@@ -111,11 +104,10 @@ class ClasesController extends Controller
         }
 
         foreach ($clases as $clase) {
-            if ($clase->id_nombre_clase_decrypt === $request->nombre_clase) {
+            if ($this->removeAccents(strtolower($clase->id_nombre_clase_decrypt)) === $this->removeAccents(strtolower($request->nombre_clase))) {
                 return redirect()->back()->withInput()->withErrors(['nombre_clase' => 'The class name is already in use.']);
             }
         }
-
         try {
             $encryptedNombre = Crypt::encryptString($request->nombre_clase);
             $encryptedProfesor = $this->profe;
@@ -133,7 +125,18 @@ class ClasesController extends Controller
         }
     }
 
-
+    function removeAccents($string)
+    {
+        $search = [
+            'À', 'Á', 'Â', 'Ã', 'Ä', 'Å', 'Æ', 'Ç', 'È', 'É', 'Ê', 'Ë', 'Ì', 'Í', 'Î', 'Ï', 'Ð', 'Ñ', 'Ò', 'Ó', 'Ô', 'Õ', 'Ö', 'Ø', 'Ù', 'Ú', 'Û', 'Ü', 'Ý', 'Þ', 'ß',
+            'à', 'á', 'â', 'ã', 'ä', 'å', 'æ', 'ç', 'è', 'é', 'ê', 'ë', 'ì', 'í', 'î', 'ï', 'ð', 'ñ', 'ò', 'ó', 'ô', 'õ', 'ö', 'ø', 'ù', 'ú', 'û', 'ü', 'ý', 'þ', 'ÿ'
+        ];
+        $replace = [
+            'A', 'A', 'A', 'A', 'A', 'A', 'AE', 'C', 'E', 'E', 'E', 'E', 'I', 'I', 'I', 'I', 'D', 'N', 'O', 'O', 'O', 'O', 'O', 'O', 'U', 'U', 'U', 'U', 'Y', 'TH', 'ss',
+            'a', 'a', 'a', 'a', 'a', 'a', 'ae', 'c', 'e', 'e', 'e', 'e', 'i', 'i', 'i', 'i', 'd', 'n', 'o', 'o', 'o', 'o', 'o', 'o', 'u', 'u', 'u', 'u', 'y', 'th', 'y'
+        ];
+        return str_replace($search, $replace, $string);
+    }
     public function edit($id)
     {
         $clase = $this->clase::findOrFail($id);
@@ -163,12 +166,20 @@ class ClasesController extends Controller
             'nombre_clase.regex' => 'El campo nombre de la clase solo puede contener letras y espacios.',
         ]);
 
-        $nombreClase = Clase::where('nombre_clase', Crypt::encryptString($request->nombre_clase))
-            ->where('id_curso', '!=', $id)
-            ->exists();
+        $nombreClaseRequest = $this->removeAccents(strtolower($request->nombre_clase));
 
-        if ($nombreClase) {
-            return redirect()->back()->withInput()->withErrors(['nombre_clase' => 'El nombre de la clase ya está en uso.']);
+        // Obtén las clases y normaliza los nombres para comparación
+        $clases = Clase::where('id_curso', '!=', $id)->get();
+
+        foreach ($clases as $clase) {
+            // Desencripta el nombre de la clase y normalízalo
+            $nombreClaseDb = Crypt::decryptString($clase->nombre_clase);
+            $nombreClaseDb = $this->removeAccents(strtolower($nombreClaseDb));
+
+            // Compara los nombres normalizados
+            if ($nombreClaseDb === $nombreClaseRequest) {
+                return redirect()->back()->withInput()->withErrors(['nombre_clase' => 'El nombre de la clase ya está en uso.']);
+            }
         }
 
         $validator->after(function ($validator) use ($request, $id) {

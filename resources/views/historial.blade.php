@@ -14,7 +14,7 @@
     <div class="pb-12">
         <div class="max-w-6xl mx-auto sm:px-6 lg:px-8 items-center justify-center">
             <div
-                class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg items-center justify-center">
+                class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg items-center justify-center p-8">
                 <div>
                     @if (!$item->isEmpty())
                     <x-buttonWhite class="ml-4 mb-6 mt-6">
@@ -43,7 +43,7 @@
                                 <strong>{{Crypt::decryptString($it->nombre_clase)}}</strong></h5>
                             <p class="font-normal text-gray-700"><strong>@if ($it->nota == 0.0)
                                     AUN NO APROBADA
-                                    @else APROBADA @endif</strong></p>
+                                    @elseif ($it->nota < 70) REPROBADA @else APROBADA @endif</strong></p>
                             <p class="font-normal text-gray-700">Promedio: @if ($it->nota == 0.0)
                                 N.A.
                                 @else{{ $it->nota }}@endif</p>

@@ -223,7 +223,7 @@ class ProfesoreController extends Controller
 
         try {
             $profesore = $this->profesore->findOrFail($id);
-            $currentEmailDecrypted = $profesore->correo_electronico;
+            $currentEmailDecrypted = Crypt::decryptString($profesore->correo_electronico);
             $encryptedName = Crypt::encryptString($request->nombre);
             $encryptedApellido = Crypt::encryptString($request->apellido);
             $encryptedCorreo = Crypt::encryptString($request->correo_electronico);
@@ -277,7 +277,7 @@ class ProfesoreController extends Controller
 
                 foreach ($clases as $clase) {
                     if ($nuevoProfesor) {
-                            $clase->update(['id_profesor' => $nuevoProfesor->id_profesor]);
+                        $clase->update(['id_profesor' => $nuevoProfesor->id_profesor]);
                     } else {
                         // Si no hay profesores sin clases asignadas, lo coloca nulo
                         $clase->update(['id_profesor' => null]);
@@ -307,7 +307,6 @@ class ProfesoreController extends Controller
                 $profesore->update(['estado_id' => 2]);
                 $us = $this->userProfesor($id);
                 DB::statement('DELETE FROM role_user WHERE user_id = ? AND role_id = ?', [$us, 3]);
-
                 $clases = Clase::where('id_profesor', $profesore->id_profesor)->get();
                 $nuevoProfesor = Profesore::whereDoesntHave('clases')->first();
                 foreach ($clases as $clase) {

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Crypt;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -35,9 +36,12 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        $encryptedName = Crypt::encryptString($request->name);
+        $encryptedEmail = Crypt::encryptString($request->email);
+
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
+            'name' => $encryptedName,
+            'email' => $encryptedEmail,
             'password' => Hash::make($request->password),
         ]);
 

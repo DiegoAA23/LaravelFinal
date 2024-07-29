@@ -43,8 +43,8 @@ class HorarioController extends Controller
 
     public function create()
     {
-        $aulas = $this->aula::all();
-        $cursos = $this->clase::all();
+        $aulas = Aula::where('estado_id', '!=', 2)->get();
+        $cursos = Clase::where('estado_id', '!=', 2)->get();
         $horarios = $this->horarioVal::all();
 
         $clases = [];
@@ -75,60 +75,30 @@ class HorarioController extends Controller
         $request->validate([
             'id_curso' => 'required',
             'aula_id' => 'required',
-            'dias' => ['required', 'string', 'min:1', 'max:6', 'regex:/^[LMMJVS]+$/'],
+            'dias' => [
+                'required',
+                'string',
+                'min:1',
+                'max:6',
+                'regex:/^[LMMJVS]+$/',
+                function ($attribute, $value, $fail) {
+                    $daysArray = str_split($value);
+                    $daysCount = array_count_values($daysArray);
+
+                    foreach ($daysCount as $day => $count) {
+                        if ($day == 'M' && $count > 2) {
+                            $fail('The day M can appear at most twice.');
+                        } elseif ($day != 'M' && $count > 1) {
+                            $fail('The day ' . $day . ' can appear only once.');
+                        }
+                    }
+                }
+            ],
             'fecha_inicio' => 'required|date|after_or_equal:today',
             'fecha_fin' => 'required|date|after:fecha_inicio',
             'hora_inicio' => 'required',
             'hora_fin' => 'required|after:hora_inicio',
         ]);
-
-        // Verificar aula
-        $horarios = $this->horarioVal::where('aula_id', $request->aula_id)->get();
-
-        $conflictingAulas = $horarios->filter(function ($horario) use ($request) {
-            $fecha_inicio = Crypt::decryptString($horario->fecha_inicio);
-            $fecha_fin = Crypt::decryptString($horario->fecha_fin);
-            $hora_inicio = Crypt::decryptString($horario->hora_inicio);
-            $hora_fin = Crypt::decryptString($horario->hora_fin);
-
-            return (
-                ($request->fecha_inicio <= $fecha_fin && $request->fecha_fin >= $fecha_inicio) &&
-                ($request->hora_inicio <= $hora_fin && $request->hora_fin >= $hora_inicio)
-            );
-        });
-
-        $conflictingAulas = $conflictingAulas->values()->all();
-
-        foreach ($conflictingAulas as $conflict) {
-            if ($this->hasDayConflict($conflict->dias, $request->dias)) {
-                throw ValidationException::withMessages(['aula_id' => 'The classroom is already occupied at the indicated time and dates.']);
-            }
-        }
-
-
-        $curso = $this->clase::findOrFail($request->id_curso);
-
-        $horarios = HorarioVal::where('id_profesor', Crypt::decryptString($curso->id_profesor))->get();
-
-        $conflictingProfesor = $horarios->filter(function ($horario) use ($request) {
-            $fecha_inicio = Crypt::decryptString($horario->fecha_inicio);
-            $fecha_fin = Crypt::decryptString($horario->fecha_fin);
-            $hora_inicio = Crypt::decryptString($horario->hora_inicio);
-            $hora_fin = Crypt::decryptString($horario->hora_fin);
-
-            return (
-                ($request->fecha_inicio <= $fecha_fin && $request->fecha_fin >= $fecha_inicio) &&
-                ($request->hora_inicio <= $hora_fin && $request->hora_fin >= $hora_inicio)
-            );
-        });
-
-        $conflictingProfesor = $conflictingProfesor->values()->all();
-
-        foreach ($conflictingProfesor as $conflict) {
-            if ($this->hasDayConflict($conflict->dias, $request->dias)) {
-                throw ValidationException::withMessages(['id_curso' => 'The teacher is already occupied at the indicated time and dates.']);
-            }
-        }
 
         $encryptedDias = Crypt::encryptString($request->dias);
         $encryptedFechaInicio = Crypt::encryptString($request->fecha_inicio);
@@ -136,11 +106,42 @@ class HorarioController extends Controller
         $encryptedHoraInicio = Crypt::encryptString($request->hora_inicio);
         $encryptedHoraFin = Crypt::encryptString($request->hora_fin);
 
+        // Verificar aula
+        $conflictingAulas = HorarioVal::where('aula_id', $request->aula_id)
+            ->get()
+            ->filter(function ($conflict) use ($request) {
+                return (
+                    ($this->hasDateConflict(Crypt::decryptString($conflict->fecha_inicio), Crypt::decryptString($conflict->fecha_fin), $request->fecha_inicio, $request->fecha_fin)) &&
+                    ($this->hasTimeConflict(Crypt::decryptString($conflict->hora_inicio), Crypt::decryptString($conflict->hora_fin), $request->hora_inicio, $request->hora_fin)) &&
+                    ($this->hasDayConflict(Crypt::decryptString($conflict->dias), $request->dias))
+                );
+            });
+
+        if ($conflictingAulas->isNotEmpty()) {
+            throw ValidationException::withMessages(['aula_id' => 'The classroom is already occupied at the indicated time and dates.']);
+        }
+
+        // Verificar profesor
+        $curso = Clase::findOrFail($request->id_curso);
+        $conflictingProfesor = HorarioVal::where('id_profesor', $curso->id_profesor)
+            ->get()
+            ->filter(function ($conflict) use ($request) {
+                return (
+                    ($this->hasDateConflict(Crypt::decryptString($conflict->fecha_inicio), Crypt::decryptString($conflict->fecha_fin), $request->fecha_inicio, $request->fecha_fin)) &&
+                    ($this->hasTimeConflict(Crypt::decryptString($conflict->hora_inicio), Crypt::decryptString($conflict->hora_fin), $request->hora_inicio, $request->hora_fin)) &&
+                    ($this->hasDayConflict(Crypt::decryptString($conflict->dias), $request->dias))
+                );
+            });
+
+        if ($conflictingProfesor->isNotEmpty()) {
+            throw ValidationException::withMessages(['id_curso' => 'The teacher is already occupied at the indicated time and dates.']);
+        }
+
         try {
             $this->horario::create([
                 'id_curso' => $request->id_curso,
                 'aula_id' => $request->aula_id,
-                'dias' =>  $encryptedDias,
+                'dias' => $encryptedDias,
                 'fecha_inicio' => $encryptedFechaInicio,
                 'fecha_fin' => $encryptedFechaFin,
                 'hora_inicio' => $encryptedHoraInicio,
@@ -161,8 +162,8 @@ class HorarioController extends Controller
         $horario->fecha_fin = Crypt::decryptString($horario->fecha_fin);
         $horario->hora_inicio = Crypt::decryptString($horario->hora_inicio);
         $horario->hora_fin = Crypt::decryptString($horario->hora_fin);
-        $aulas = $this->aula::all();
-        $clases = $this->clase::all();
+        $aulas = Aula::where('estado_id', '!=', 2)->get();
+        $clases = Clase::where('estado_id', '!=', 2)->get();
         foreach ($clases as $clase) {
             $clase->nombre_clase = Crypt::decryptString($clase->nombre_clase);
         }
@@ -171,50 +172,33 @@ class HorarioController extends Controller
 
     public function update(Request $request, $id)
     {
-        $desencriptar = function ($valor) {
-            return Crypt::decryptString($valor);
-        };
+        $request->validate([
+            'id_curso' => 'required',
+            'aula_id' => 'required',
+            'dias' => [
+                'required',
+                'string',
+                'min:1',
+                'max:6',
+                'regex:/^[LMMJVS]+$/',
+                function ($attribute, $value, $fail) {
+                    $daysArray = str_split($value);
+                    $daysCount = array_count_values($daysArray);
 
-        // Verificar aula
-        $conflictingAulas = HorarioVal::where('aula_id', $request->aula_id)
-            ->get();
-
-        foreach ($conflictingAulas as $conflict) {
-            $conflictFechaInicio = $desencriptar($conflict->fecha_inicio);
-            $conflictFechaFin = $desencriptar($conflict->fecha_fin);
-            $conflictHoraInicio = $desencriptar($conflict->hora_inicio);
-            $conflictHoraFin = $desencriptar($conflict->hora_fin);
-            $conflictDias = $conflict->dias; // Asumimos que los días no están encriptados
-
-            if (
-                ($request->fecha_inicio <= $conflictFechaFin && $request->fecha_fin >= $conflictFechaInicio) &&
-                ($request->hora_inicio <= $conflictHoraFin && $request->hora_fin >= $conflictHoraInicio) &&
-                $this->hasDayConflict($conflictDias, $request->dias)
-            ) {
-                throw ValidationException::withMessages(['aula_id' => 'The classroom is already occupied at the indicated time and dates.']);
-            }
-        }
-
-        // Verificar profesor
-        $curso = Clase::findOrFail($request->id_curso);
-        $conflictingProfesor = HorarioVal::where('id_profesor', $curso->id_profesor)
-            ->get();
-
-        foreach ($conflictingProfesor as $conflict) {
-            $conflictFechaInicio = $desencriptar($conflict->fecha_inicio);
-            $conflictFechaFin = $desencriptar($conflict->fecha_fin);
-            $conflictHoraInicio = $desencriptar($conflict->hora_inicio);
-            $conflictHoraFin = $desencriptar($conflict->hora_fin);
-            $conflictDias = $conflict->dias; // Asumimos que los días no están encriptados
-
-            if (
-                ($request->fecha_inicio <= $conflictFechaFin && $request->fecha_fin >= $conflictFechaInicio) &&
-                ($request->hora_inicio <= $conflictHoraFin && $request->hora_fin >= $conflictHoraInicio) &&
-                $this->hasDayConflict($conflictDias, $request->dias)
-            ) {
-                throw ValidationException::withMessages(['id_curso' => 'The teacher is already occupied at the indicated time and dates.']);
-            }
-        }
+                    foreach ($daysCount as $day => $count) {
+                        if ($day == 'M' && $count > 2) {
+                            $fail('The day M can appear at most twice.');
+                        } elseif ($day != 'M' && $count > 1) {
+                            $fail('The day ' . $day . ' can appear only once.');
+                        }
+                    }
+                }
+            ],
+            'fecha_inicio' => 'required|date|after_or_equal:today',
+            'fecha_fin' => 'required|date|after:fecha_inicio',
+            'hora_inicio' => 'required',
+            'hora_fin' => 'required|after:hora_inicio',
+        ]);
 
         $encryptedDias = Crypt::encryptString($request->dias);
         $encryptedFechaInicio = Crypt::encryptString($request->fecha_inicio);
@@ -222,12 +206,60 @@ class HorarioController extends Controller
         $encryptedHoraInicio = Crypt::encryptString($request->hora_inicio);
         $encryptedHoraFin = Crypt::encryptString($request->hora_fin);
 
+        $currentHorario = $this->horario::findOrFail($id);
+
+        // Verificar aula
+        $conflictingAulas = HorarioVal::where('aula_id', $request->aula_id)
+            ->where(function ($query) use ($currentHorario) {
+                $query->where('id_curso', '!=', $currentHorario->id_curso)
+                    ->orWhere('fecha_inicio', '!=', $currentHorario->fecha_inicio)
+                    ->orWhere('fecha_fin', '!=', $currentHorario->fecha_fin)
+                    ->orWhere('hora_inicio', '!=', $currentHorario->hora_inicio)
+                    ->orWhere('hora_fin', '!=', $currentHorario->hora_fin)
+                    ->orWhere('dias', '!=', $currentHorario->dias);
+            })
+            ->get()
+            ->filter(function ($conflict) use ($request) {
+                return (
+                    $this->hasDateConflict(Crypt::decryptString($conflict->fecha_inicio), Crypt::decryptString($conflict->fecha_fin), $request->fecha_inicio, $request->fecha_fin) &&
+                    $this->hasTimeConflict(Crypt::decryptString($conflict->hora_inicio), Crypt::decryptString($conflict->hora_fin), $request->hora_inicio, $request->hora_fin) &&
+                    $this->hasDayConflict(Crypt::decryptString($conflict->dias), $request->dias)
+                );
+            });
+
+        if ($conflictingAulas->isNotEmpty()) {
+            throw ValidationException::withMessages(['aula_id' => 'The classroom is already occupied at the indicated time and dates.']);
+        }
+
+        // Verificar profesor
+        $curso = Clase::findOrFail($request->id_curso);
+        $conflictingProfesor = HorarioVal::where('id_profesor', $curso->id_profesor)
+            ->where(function ($query) use ($currentHorario) {
+                $query->where('id_curso', '!=', $currentHorario->id_curso)
+                    ->orWhere('fecha_inicio', '!=', $currentHorario->fecha_inicio)
+                    ->orWhere('fecha_fin', '!=', $currentHorario->fecha_fin)
+                    ->orWhere('hora_inicio', '!=', $currentHorario->hora_inicio)
+                    ->orWhere('hora_fin', '!=', $currentHorario->hora_fin)
+                    ->orWhere('dias', '!=', $currentHorario->dias);
+            })
+            ->get()
+            ->filter(function ($conflict) use ($request) {
+                return (
+                    $this->hasDateConflict(Crypt::decryptString($conflict->fecha_inicio), Crypt::decryptString($conflict->fecha_fin), $request->fecha_inicio, $request->fecha_fin) &&
+                    $this->hasTimeConflict(Crypt::decryptString($conflict->hora_inicio), Crypt::decryptString($conflict->hora_fin), $request->hora_inicio, $request->hora_fin) &&
+                    $this->hasDayConflict(Crypt::decryptString($conflict->dias), $request->dias)
+                );
+            });
+
+        if ($conflictingProfesor->isNotEmpty()) {
+            throw ValidationException::withMessages(['id_curso' => 'The teacher is already occupied at the indicated time and dates.']);
+        }
+
         try {
-            $horario = $this->horario::findOrFail($id);
-            $horario->update([
+            $currentHorario->update([
                 'id_curso' => $request->id_curso,
                 'aula_id' => $request->aula_id,
-                'dias' =>  $encryptedDias,
+                'dias' => $encryptedDias,
                 'fecha_inicio' => $encryptedFechaInicio,
                 'fecha_fin' => $encryptedFechaFin,
                 'hora_inicio' => $encryptedHoraInicio,
@@ -255,6 +287,23 @@ class HorarioController extends Controller
         } catch (\Exception $e) {
             return redirect()->route('horarioView');
         }
+    }
+
+
+    private function hasDateConflict($start1, $end1, $start2, $end2)
+    {
+        return (
+            ($start1 <= $end2 && $end1 >= $start2) ||
+            ($start2 <= $end1 && $end2 >= $start1)
+        );
+    }
+
+    private function hasTimeConflict($start1, $end1, $start2, $end2)
+    {
+        return (
+            ($start1 <= $end2 && $end1 >= $start2) ||
+            ($start2 <= $end1 && $end2 >= $start1)
+        );
     }
 
     private function hasDayConflict($days1, $days2)

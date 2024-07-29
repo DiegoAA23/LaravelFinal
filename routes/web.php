@@ -22,7 +22,7 @@ Route::get('/', function () {
 /*Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');*/
-Route::group(['middleware' => 'auth'], function () {
+Route::middleware(['auth', 'checkRole:admin,maestro,estudiante'])->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
@@ -39,7 +39,6 @@ Route::get('/imprimir-aulas', [AulaController::class, 'imprimirAulas']);
 Route::get('/imprimir-especialidades', [EspecialidadController::class, 'imprimirEspecialidades']);
 
 Route::middleware('auth')->group(function () {
-
 Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
