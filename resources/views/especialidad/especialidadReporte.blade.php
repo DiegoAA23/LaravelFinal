@@ -58,15 +58,16 @@
     </style>
 </head>
 <body>
-    <h2 class="header">
-        E S P E C I A L I D A D E S
-    </h2>
+    <div class="header">
+        <h1>E S P E C I A L I D A D E S</h1>
+        <p class="date">{{ \Carbon\Carbon::now()->locale('es')->format('l, j F Y \- H:i') }}</p>
+    </div>
     <div class="table-container">
         <div class="table-wrapper">
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th>No.</th>
                         <th>Especialidad</th>
                         <th>Estado</th>
                     </tr>

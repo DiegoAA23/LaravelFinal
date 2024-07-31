@@ -119,7 +119,7 @@ class ClasesController extends Controller
                 'estado_id' => 1,
             ]);
 
-            return redirect()->route('claseView')->with('success', 'Clase creada exitosamente.');
+            return redirect()->route('claseView')->with('success', 'Clase Agregada Exitosamente.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error al crear la clase.')->withInput();
         }
@@ -215,7 +215,7 @@ class ClasesController extends Controller
                 'periodo' => $request->periodo,
                 'estado_id' => $request->estado_id,
             ]);
-            return redirect()->route('claseView')->with('success', 'Clase actualizada exitosamente.');
+            return redirect()->route('claseView')->with('success', 'Clase Actualizada Exitosamente');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error al actualizar la clase.')->withInput();
         }
@@ -251,9 +251,9 @@ class ClasesController extends Controller
 
             if ($clase->estado_id == 1) {
                 $clase->update(['estado_id' => 2]);
-                return redirect()->route('claseView')->with('success', 'Clase inhabilitada exitosamente.');
+                return redirect()->route('claseView')->with('success', 'Clase Deshabilitada Exitosamente');
             } else {
-                return redirect()->route('claseView')->with('info', 'La clase ya está inhabilitada.');
+                return redirect()->route('claseView')->with('info', 'La Clase Ya Está Deshabilitada');
             }
         } catch (\Exception $e) {
             return redirect()->route('claseView')->withErrors(['error' => 'Error al inhabilitar la clase.']);

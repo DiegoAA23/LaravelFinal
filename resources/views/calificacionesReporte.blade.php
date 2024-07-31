@@ -10,6 +10,9 @@
         body {
             background-color: white;
             font-family: Arial, sans-serif;
+            justify-content: center;
+            align-content: center;
+            text-align: center;
         }
 
         .container {
@@ -79,6 +82,9 @@
 </head>
 
 <body>
+    <div class="header">
+        <p class="date">{{ \Carbon\Carbon::now()->locale('es')->format('l, j F Y \- H:i') }}</p>
+    </div>
     @php $cont = 0; @endphp
     <div class="container">
         <div class="grades-container">

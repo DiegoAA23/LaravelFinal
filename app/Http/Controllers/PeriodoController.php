@@ -31,7 +31,7 @@ class PeriodoController extends Controller
                 ]);
             }
             $this->storeN();
-            return redirect()->route('matricula')->with('success', 'Inscripciones creadas exitosamente.');
+            return redirect()->route('matricula')->with('success', 'Inscripciones Agregadas Exitosamente');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Error al crear las inscripciones.')->withInput();
         }

@@ -1,11 +1,11 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight mt-6">
             {{ __('Actualizar Profesor') }}
         </h2>
     </x-slot>
 
-    <div class="py-12">
+    <div class="pb-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-transparent dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-black dark:text-black">
@@ -68,14 +68,14 @@
 
                             <div>
                                 <x-labelWhite for="telefono" :value="'Teléfono:'"></x-labelWhite>
-                                <x-inputWhite class="block mt-1 w-full" type="number" name="telefono"
+                                <x-inputWhite class="block mt-1 w-full" min="0" type="number" name="telefono"
                                     value="{{ old('telefono', $profesore->telefono) }}" required autofocus></x-inputWhite>
                             </div>
 
                             <div>
                                 <x-labelWhite for="estado" :value="'Estado:'" />
                                 <select name="estado_id" id="estado_id" 
-                                class="rounded-md shadow-sm block mt-1 w-full rounded-lg border border-white-300 dark:border-white-600 focus:outline-none focus:border-white focus:ring-white focus:ring-opacity-50 dark:focus:border-gray-400">
+                                class="shadow-sm block mt-1 w-full rounded-lg border border-white-300 dark:border-white-600 focus:outline-none focus:border-white focus:ring-white focus:ring-opacity-50 dark:focus:border-gray-400">
                                     <option value="1" {{ $profesore->estado_id == 1 ? 'selected' : '' }}>Activo</option>
                                     <option value="2" {{ $profesore->estado_id == 2 ? 'selected' : '' }}>Inactivo</option>
                                 </select>

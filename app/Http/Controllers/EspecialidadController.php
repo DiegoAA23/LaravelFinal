@@ -56,7 +56,7 @@ class EspecialidadController extends Controller
             dd($e->getMessage());
         }
 
-        return redirect()->route('especialidadView');
+        return redirect()->route('especialidadView')->with('success', 'Especialidad Agregada Exitosamente');
     }
 
     /**
@@ -90,7 +90,7 @@ class EspecialidadController extends Controller
             $especialidad = Especialidad::findOrFail($id);
             $especialidad->update($request->all());
 
-            return redirect()->route('especialidadView');
+            return redirect()->route('especialidadView')->with('success', 'Especialidad Actualizada Exitosamente');
         } catch (\Exception $e) {
             dd($e->getMessage());
         }
@@ -106,9 +106,9 @@ class EspecialidadController extends Controller
 
             if ($especialidad->estado_id == 1) {
                 $especialidad->update(['estado_id' => 2]);
-                return redirect()->route('especialidadView');
+                return redirect()->route('especialidadView')->with('success', 'Especialidad Desactivada Exitosamente');
             } else {
-                return redirect()->route('especialidadView');
+                return redirect()->route('especialidadView')->with('error', 'La Especialidad Ya Esta Desactivada');
             }
         } catch (\Exception $e) {
             return redirect()->route('especialidadView');

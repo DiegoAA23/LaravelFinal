@@ -49,8 +49,8 @@
                         <tbody>
                             @foreach($clases as $clase)
                             <tr>
-                                <td class="border px-4 py-2 text-gray-900 dark:text-white text-center">{{ $clase->
-                                    id_curso }}</td>
+                                <td class="border px-4 py-2 text-gray-900 dark:text-white text-center">{{ 
+                                $clase->id_curso }}</td>
                                 <td class="border px-4 py-2 text-gray-900 dark:text-white text-center">{{
                                     $clase->nombre_clase }}</td>
                                 <td class="border px-4 py-2 text-gray-900 dark:text-white text-center">{{

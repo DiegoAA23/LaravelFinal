@@ -1,11 +1,11 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight my-6">
             {{ __('Ingresar Profesor') }}
         </h2>
     </x-slot>
 
-    <div class="py-12">
+    <div class="pb-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-transparent dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-black dark:text-black">
@@ -36,7 +36,7 @@
 
                         <div class="grid grid-cols-2 gap-6">
                             <div>
-                                <x-labelWhite for="id_profesor" :value="'ID:'"></x-labelWhite>
+                                <x-labelWhite for="id_profesor" :value="'DNI:'"></x-labelWhite>
                                 <x-inputWhite class="block mt-1 w-full" type="number" name="id_profesor" value="{{ old('id_profesor') }}"
                                               required autofocus></x-inputWhite>
                             </div>
@@ -56,7 +56,7 @@
                             <div>
                             <x-labelWhite for="id_especialidad" :value="'Especialidad:'" />
                             <select id="id_especialidad" name="id_especialidad" required
-                            class="rounded-md shadow-sm block mt-1 w-full rounded-lg border border-white-300 dark:border-white-600 focus:outline-none focus:border-white focus:ring-white focus:ring-opacity-50 dark:focus:border-gray-400">
+                            class="shadow-sm block mt-1 w-full rounded-lg border border-white-300 dark:border-white-600 focus:outline-none focus:border-white focus:ring-white focus:ring-opacity-50 dark:focus:border-gray-400">
                             @foreach($especialidades as $especialidad)
                                     <option value="{{ $especialidad->id_especialidad }}" {{ old('id_especialidad') == $especialidad->id_especialidad ? 'selected' : '' }}>
                                         {{ $especialidad->especialidad }}
@@ -74,10 +74,9 @@
                             <div>
                                 <x-labelWhite for="telefono" :value="'Teléfono:'"></x-labelWhite>
                                 <x-inputWhite class="block mt-1 w-full" type="number" name="telefono" value="{{ old('telefono') }}"
-                                              required autofocus></x-inputWhite>
+                                              required min=0 autofocus></x-inputWhite>
                             </div>
                         </div>
-                        
 
                         <div class="flex items-center justify-end mt-4">
                             <x-buttonWhite type="submit">
