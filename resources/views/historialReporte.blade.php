@@ -86,6 +86,10 @@
 </head>
 
 <body>
+    <div class="header">
+        <h1>Historial de Clases</h1>
+        <p class="date">{{ \Carbon\Carbon::now()->format('l, j F Y') }}</p>
+    </div>
     <div class="student-info-card">
         <h2>Información del Alumno</h2>
         <p><strong>Nombre: </strong>{{ Crypt::decryptString($nombre_estudiante) }} {{
@@ -107,7 +111,6 @@
                 <thead>
                     <tr>
                         <th>Clase</th>
-                        <th>Profesor</th>
                         <th>Nota</th>
                     </tr>
                 </thead>
@@ -121,7 +124,6 @@
                         <td colspan="4"><strong>Periodo {{ $tmpPer }}</strong></td>
                     @endif
                     <tr>
-                        <td></td>
                         <td>{{ Crypt::decryptString($it->nombre_clase) }}</td>
 
                         <td>@if ($it->nota == 0.0) N.A. @else {{ $it->nota }} @endif</td>

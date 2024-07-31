@@ -286,7 +286,7 @@ class ProfesoreController extends Controller
             }
 
 
-            return redirect()->route('profesorView')->with('success', 'Profesor actualizado exitosamente');
+            return redirect()->route('profesorView')->with('success', 'Profesor Actualizado Exitosamente');
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['error' => $e->getMessage()]);
         }
@@ -317,9 +317,9 @@ class ProfesoreController extends Controller
                         $clase->update(['id_profesor' => null]);
                     }
                 }
-                return redirect()->route('profesorView')->with('success', 'Profesor desactivado exitosamente');
+                return redirect()->route('profesorView')->with('success', 'Profesor Desactivado Exitosamente');
             } else {
-                return redirect()->route('profesorView')->with('info', 'El profesor ya está desactivado');
+                return redirect()->route('profesorView')->with('error', 'El Profesor Ya Está Desactivado');
             }
         } catch (\Exception $e) {
             return redirect()->route('profesorView')->withErrors(['error' => $e->getMessage()]);

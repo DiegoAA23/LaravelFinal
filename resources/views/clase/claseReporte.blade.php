@@ -60,9 +60,10 @@
 </head>
 
 <body>
-    <h2 class="header">
-        C L A S E S
-    </h2>
+    <div class="header">
+        <h1>C L A S E S</h1>
+        <p class="date">{{ \Carbon\Carbon::now()->locale('es')->format('l, j F Y \- H:i') }}</p>
+    </div>
     <div class="table-container">
         <div class="table-wrapper">
             <table class="table-auto w-full">

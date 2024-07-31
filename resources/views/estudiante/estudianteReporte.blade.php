@@ -60,15 +60,16 @@
 </head>
 
 <body>
-    <h2 class="header">
-        E S T U D I A N T E S
-    </h2>
+    <div class="header">
+        <h1>E S T U D I A N T E S</h1>
+        <p class="date">{{ \Carbon\Carbon::now()->locale('es')->format('l, j F Y \- H:i') }}</p>
+    </div>
     <div class="table-container">
         <div class="table-wrapper">
             <table class="table-auto w-full">
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th>DNI</th>
                         <th>Nombre</th>
                         <th>Apellido</th>
                         <th>Nacimiento</th>

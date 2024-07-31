@@ -149,7 +149,7 @@ class HorarioController extends Controller
                 'estado_id' => 1
             ]);
 
-            return redirect()->route('horarioView');
+            return redirect()->route('horarioView')->with('success', 'Horario Agregado Exitosamente');
         } catch (\Exception $e) {
             dd($e->getMessage());
         }
@@ -267,7 +267,7 @@ class HorarioController extends Controller
                 'estado_id' => 1,
             ]);
 
-            return redirect()->route('horarioView');
+            return redirect()->route('horarioView')->with('success', 'Horario Actualizado Exitosamente');
         } catch (\Exception $e) {
             dd($e->getMessage());
         }

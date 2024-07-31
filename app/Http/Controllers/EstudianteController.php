@@ -49,7 +49,7 @@ class EstudianteController extends Controller
         $this->index();
         $estudiantes = $this->idest;
 
-        $pdf = PDF::loadView('estudiante.estudianteReporte', compact('estudiantes'))->setPaper('a4', 'landscape');
+        $pdf = PDF::loadView('estudiante.estudianteReporte', compact('estudiantes'))->setPaper('a3', 'landscape');
 
         return $pdf->download('estudiantes.pdf');
     }
@@ -162,7 +162,7 @@ class EstudianteController extends Controller
             dd($e->getMessage());
         }
 
-        return redirect()->route('estudianteView');
+        return redirect()->route('estudianteView')->with('success', 'Estudiante Agregado Exitosamente');
     }
 
     /**
@@ -274,7 +274,7 @@ class EstudianteController extends Controller
                 }
             }
 
-            return redirect()->route('estudianteView');
+            return redirect()->route('estudianteView')->with('success', 'Estudiante Actualizado Exitosamente');
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['error' => $e->getMessage()]);
         }
@@ -298,9 +298,9 @@ class EstudianteController extends Controller
                 DB::statement('DELETE FROM role_user WHERE user_id = ? AND role_id = ?', [$us, 2]);
                 /////////////////////////////////////////////////////////////
               
-                return redirect()->route('estudianteView')->with('success', 'Estudiante desactivado exitosamente.');
+                return redirect()->route('estudianteView')->with('success', 'Estudiante Desactivado Exitosamente.');
             } else {
-                return redirect()->route('estudianteView');
+                return redirect()->route('estudianteView')->with('error', 'El Estudiante Ya Esta Desactivado');
             }
         } catch (\Exception $e) {
             return redirect()->route('estudianteView')->with('error', 'Error al desactivar el estudiante: ' . $e->getMessage());

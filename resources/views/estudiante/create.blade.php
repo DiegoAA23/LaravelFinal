@@ -1,11 +1,11 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight mt-6">
             {{ __('Ingresar Estudiante') }}
         </h2>
     </x-slot>
 
-    <div class="py-12">
+    <div class="pB-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-transparent dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-black dark:text-black">
@@ -35,7 +35,7 @@
                         @csrf
                         <div class="grid grid-cols-2 gap-6">
                             <div>
-                                <x-labelWhite for="id_estudiante" :value="'ID:'"></x-labelWhite>
+                                <x-labelWhite for="id_estudiante" :value="'DNI:'"></x-labelWhite>
                                 <x-inputWhite class="block mt-1 w-full" type="number" name="id_estudiante"  value="{{ old('id_estudiante') }}"
                                               required autofocus></x-inputWhite>
                             </div>

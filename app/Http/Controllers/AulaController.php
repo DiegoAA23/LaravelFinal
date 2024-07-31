@@ -54,7 +54,7 @@ class AulaController extends Controller
             dd($e->getMessage());
         }
 
-        return redirect()->route('aulaView');
+        return redirect()->route('aulaView')->with('success', 'Aula Ingresada Exitosamente');
     }
 
     /**
@@ -88,7 +88,7 @@ class AulaController extends Controller
             $aula = Aula::findOrFail($id);
             $aula->update($request->all());
 
-            return redirect()->route('aulaView');
+            return redirect()->route('aulaView')->with('success', 'Aula Editada Exitosamente');;
         } catch (\Exception $e) {
             dd($e->getMessage());
         }
@@ -104,12 +104,12 @@ class AulaController extends Controller
 
             if ($aula->estado_id == 1) {
                 $aula->update(['estado_id' => 2]);
-                return redirect()->route('aulaView');
+                return redirect()->route('aulaView')->with('success', 'Aula Deshabilitada Exitosamente');
             } else {
-                return redirect()->route('aulaView');
+                return redirect()->route('aulaView')->with('error', 'El Aula Ya Esta Desahabilitada');
             }
         } catch (\Exception $e) {
-            return redirect()->route('aulaView');
+            return redirect()->route('aulaView');;
         }
     }
 }

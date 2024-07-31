@@ -12,7 +12,7 @@ class CheckRole
     {
         if (!Auth::check() || !Auth::user()->hasAnyRole($roles)) {
             Auth::logout();
-            return redirect('/login')->with('error', 'No tienes acceso.');
+            abort(403, 'ACCESO NO AUTORIZADO');
         }
         return $next($request);
     }
